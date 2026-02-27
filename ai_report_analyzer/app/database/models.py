@@ -98,7 +98,6 @@ class Report(Base):
     filtering reports based on their analytical value.
     """
 
-
 class Metric(Base):
     """
     Database model representing individual metrics extracted from processed reports.
