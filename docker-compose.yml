@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: reportdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./app:/app/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/reportdb
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - db
+
+  dashboard:
+    build: .
+    dockerfile: Dockerfile.dashboard
+    command: streamlit run app/dashboard/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+    volumes:
+      - ./app:/app/app
+    ports:
+      - "8501:8501"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/reportdb
+      - API_URL=http://api:8000
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
